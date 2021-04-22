@@ -38,8 +38,8 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     batch_size = 32
 
-    transform=Compose([
-        Resize(256,256),
+    transform = Compose([
+        Resize(256, 256),
         ToTensor()
     ])
 
@@ -70,6 +70,17 @@ def main():
             optimizer.step()
             epoch_loss += loss.item()
             print_step(step, max_step, loss, time.perf_counter() - start_time)
+
+        # Validation every 10 epochs
+        if epoch % 10 == 0:
+            val_epoch_loss = 0
+            with torch.no_grad():
+                for step, batch in enumerate(val_dataloader, start=1):
+                    img_batch, label_batch = batch["img"].to(device).float(), batch["label"].to(device).long()
+                    x = model(img_batch)
+                    val_epoch_loss += loss_fn(x, label_batch).item()
+            print(f"Epoch {epoch}  -  Validation loss: {val_epoch_loss}")
+
         scheduler.step()
         print(epoch_loss / max_step, flush=True)
 
