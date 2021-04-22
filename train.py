@@ -37,6 +37,8 @@ def main():
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     batch_size = 32
+    checkpoint_save_path = Path("./checkpoints")
+    checkpoint_save_path.mkdir(parents=True, exist_ok=True)
 
     transform = Compose([
         Resize(256, 256),
@@ -80,6 +82,9 @@ def main():
                     x = model(img_batch)
                     val_epoch_loss += loss_fn(x, label_batch).item()
             print(f"Epoch {epoch}  -  Validation loss: {val_epoch_loss}")
+
+            # Save model every 10 epochs
+            torch.save(model.state_dict(), checkpoint_save_path / f"epoch_{epoch}")
 
         scheduler.step()
         print(epoch_loss / max_step, flush=True)
